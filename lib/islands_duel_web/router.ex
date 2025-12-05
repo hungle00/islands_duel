@@ -1,6 +1,8 @@
 defmodule IslandsDuelWeb.Router do
   use IslandsDuelWeb, :router
 
+  import IslandsDuelWeb.UserAuth
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -8,6 +10,7 @@ defmodule IslandsDuelWeb.Router do
     plug :put_root_layout, html: {IslandsDuelWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_user
   end
 
   pipeline :api do
@@ -18,6 +21,13 @@ defmodule IslandsDuelWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    resources "/session", SessionController, only: [:new, :create, :delete], singleton: true
+  end
+
+  scope "/", IslandsDuelWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    resources "/games", GameController, only: [:create, :show]
   end
 
   # Other scopes may use custom stacks.

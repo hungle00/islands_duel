@@ -14,7 +14,9 @@ defmodule IslandsDuel.Application do
       # Start a worker by calling: IslandsDuel.Worker.start_link(arg)
       # {IslandsDuel.Worker, arg},
       # Start to serve requests, typically the last entry
-      IslandsDuelWeb.Endpoint
+      IslandsDuelWeb.Endpoint,
+      {Registry, keys: :unique, name: Registry.Game},
+      IslandsDuel.GameSupervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -1,22 +1,69 @@
 <Layouts.app flash={@flash}>
-  <section class="mx-auto max-w-5xl" data-game-id={@game_id} data-username={@username}>
-    <h1 class="mb-2 text-xl font-semibold leading-8 text-zinc-800">
+  <section class="mx-auto max-w-3xl p-4" data-game-id={@game_id} data-username={@username}>
+    <h1 class="mb-4 text-2xl font-semibold leading-8 text-zinc-800 text-center">
       Islands Game
     </h1>
 
-    <div class="game-meta">
-      Share this link:
-      <span class="game-name">
-        <a id="game-path" href="/games/#{@game_id}"><%= @game_id %></a>
-      </span>
-      <clipboard-copy aria-label='Copy game URL to clipboard' for="game-path" class="copy-btn" %>
-        <svg aria-hidden='true' viewBox='0 0 16 16' version='1.1' data-view-component='true' height='16' width='16' class='icon octicon-clippy'>
-          <path fill-rule='evenodd' d='M5.75 1a.75.75 0 00-.75.75v3c0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75v-3a.75.75 0 00-.75-.75h-4.5zm.75 3V2.5h3V4h-3zm-2.874-.467a.75.75 0 00-.752-1.298A1.75 1.75 0 002 3.75v9.5c0 .966.784 1.75 1.75 1.75h8.5A1.75 1.75 0 0014 13.25v-9.5a1.75 1.75 0 00-.874-1.515.75.75 0 10-.752 1.298.25.25 0 01.126.217v9.5a.25.25 0 01-.25.25h-8.5a.25.25 0 01-.25-.25v-9.5a.25.25 0 01.126-.217z'></path>
-        </svg>
-        <svg style='display: none;' aria-hidden='true' viewBox='0 0 16 16' version='1.1' data-view-component='true' height='16' width='16' class='icon octicon-check color-icon-success'>
-          <path fill-rule='evenodd' d='M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z'></path>
-        </svg>
-      </clipboard-copy>
+    <div class="game-meta mb-6 text-center">
+      <p class="text-sm text-zinc-600">
+        Share this link: 
+        <a id="game-path" href={"/games/#{@game_id}"} class="text-blue-600 hover:underline">
+          {@game_id}
+        </a>
+      </p>
+    </div>
+
+    <!-- Two Player Grids -->
+    <div class="flex gap-8 justify-center items-start">
+      <!-- Player 1 Grid -->
+      <div class="flex-1 max-w-md">
+        <h2 class="text-lg font-semibold mb-3 text-center">Player 1</h2>
+        <div class="grid grid-cols-11 gap-0 border-2 border-gray-800 bg-white shadow-lg">
+          <%= for row <- 0..10 do %>
+            <%= for col <- 0..10 do %>
+              <div 
+                class={[
+                  "w-8 h-8 border border-gray-300 hover:border-gray-500 hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-center text-xs",
+                  if(@player_role == :player1 and MapSet.member?(@island_cells, {:player1, row, col}), do: "bg-blue-500", else: ""),
+                  if(MapSet.member?(@clicked_cells, {:player1, row, col}), do: "bg-gray-600", else: "")
+                ]}
+                phx-click="cell_click"
+                phx-value-player="player1"
+                phx-value-row={row}
+                phx-value-col={col}
+                data-row={row}
+                data-col={col}
+              >
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Player 2 Grid -->
+      <div class="flex-1 max-w-md">
+        <h2 class="text-lg font-semibold mb-3 text-center">Player 2</h2>
+        <div class="grid grid-cols-11 gap-0 border-2 border-gray-800 bg-white shadow-lg">
+          <%= for row <- 0..10 do %>
+            <%= for col <- 0..10 do %>
+              <div 
+                class={[
+                  "w-8 h-8 border border-gray-300 hover:border-gray-500 hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-center text-xs",
+                  if(@player_role == :player2 and MapSet.member?(@island_cells, {:player2, row, col}), do: "bg-blue-500", else: ""),
+                  if(MapSet.member?(@clicked_cells, {:player2, row, col}), do: "bg-gray-600", else: "")
+                ]}
+                phx-click="cell_click"
+                phx-value-player="player2"
+                phx-value-row={row}
+                phx-value-col={col}
+                data-row={row}
+                data-col={col}
+              >
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
     </div>
   </section>
 </Layouts.app>

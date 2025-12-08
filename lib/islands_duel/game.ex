@@ -28,6 +28,13 @@ defmodule IslandsDuel.Game do
   def guess_coordinate(game, player, row, col) when player in @players, do:
     GenServer.call(game, {:guess_coordinate, player, row, col})
 
+  def get_state(game_id) when is_binary(game_id) do
+    case GenServer.whereis(via_tuple(game_id)) do
+      nil -> {:error, :not_found}
+      _pid -> {:ok, :sys.get_state(via_tuple(game_id))}
+    end
+  end
+
   def init(_name) do
     player1 = %{name: nil, board: Board.new(), guesses: Guesses.new()}
     player2 = %{name: nil,  board: Board.new(), guesses: Guesses.new()}

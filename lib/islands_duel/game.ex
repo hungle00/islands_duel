@@ -28,8 +28,8 @@ defmodule IslandsDuel.Game do
   def guess_coordinate(game, player, row, col) when player in @players, do:
     GenServer.call(game, {:guess_coordinate, player, row, col})
 
-  def init(name) do
-    player1 = %{name: name, board: Board.new(), guesses: Guesses.new()}
+  def init(_name) do
+    player1 = %{name: nil, board: Board.new(), guesses: Guesses.new()}
     player2 = %{name: nil,  board: Board.new(), guesses: Guesses.new()}
     {:ok, %{player1: player1, player2: player2, rules: %Rules{}}}
   end
@@ -46,14 +46,25 @@ defmodule IslandsDuel.Game do
     {:reply, state, state}
 
   def handle_call({:add_player, name}, _from, state_data) do
-    with {:ok, rules} <- Rules.check(state_data.rules, :add_player)
-    do
-      state_data
-      |> update_player2_name(name)
-      |> update_rules(rules)
-      |> reply_success(:ok)
-    else
-      :error -> {:reply, :error, state_data}
+    cond do
+      # Add player1 (first player)
+      state_data.player1.name == nil ->
+        with {:ok, rules} <- Rules.check(state_data.rules, :add_player) do
+          state_data
+          |> update_player1_name(name)
+          |> update_rules(rules)
+          |> reply_success(:ok)
+        else
+          :error -> {:reply, :error, state_data}
+        end
+      # Add player2 (second player)
+      state_data.player1.name != nil and state_data.player2.name == nil ->
+        state_data
+        |> update_player2_name(name)
+        |> reply_success(:ok)
+      # Both players already set
+      true ->
+        {:reply, :error, state_data}
     end
   end
 
@@ -127,6 +138,9 @@ defmodule IslandsDuel.Game do
 
   defp opponent(:player1), do: :player2
   defp opponent(:player2), do: :player1
+
+  defp update_player1_name(state_data, name), do:
+    put_in(state_data.player1.name, name)
 
   defp update_player2_name(state_data, name), do:
     put_in(state_data.player2.name, name)

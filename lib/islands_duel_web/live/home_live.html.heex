@@ -1,0 +1,79 @@
+<Layouts.app flash={@flash}>
+  <section class="phx-hero">
+    <h1 class="mb-2 text-xl font-semibold leading-8 text-zinc-800">
+      <%= gettext "Welcome to %{name}!", name: "Skywalker" %>
+    </h1>
+
+    <%= if @current_user do %>
+      <div class="flex gap-4">
+        <.form for={to_form(%{}, as: :game)} action={~p"/games"} method="post" id="game-form">
+          <.button type="submit" variant="primary">Start a new game</.button>
+        </.form>
+
+        <.button 
+          phx-click="open_join_modal" 
+          id="join-game-button"
+        >
+          Join a game
+        </.button>
+      </div>
+
+      <!-- Join Game Modal -->
+        <div 
+        class={["modal", @show_join_modal && "modal-open"]}
+        id="join-game-modal"
+        phx-click-away="close_join_modal"
+      >
+        <div class="modal-box" phx-click-away={JS.push("close_join_modal")}>
+          <h3 class="font-bold text-lg mb-4">Join a Game</h3>
+          
+          <.form 
+            for={to_form(%{}, as: :join_game)} 
+            phx-submit="join_game" 
+            id="join-game-form"
+          >
+            <.input
+              field={to_form(%{}, as: :join_game)[:game_id]}
+              type="text"
+              label="Game ID"
+              required
+              autofocus
+              placeholder="Enter game ID"
+            />
+
+            <div class="modal-action">
+              <.button 
+                type="button" 
+                phx-click="close_join_modal"
+              >
+                Cancel
+              </.button>
+              <.button type="submit" variant="primary">
+                Join
+              </.button>
+            </div>
+          </.form>
+        </div>
+      </div>
+    <% else %>
+      <.form for={to_form(%{}, as: :user)} action={~p"/session"} method="post" id="session-form">
+        <%= if assigns[:error_message] do %>
+          <div class="alert alert-danger">
+            <p>{@error_message}</p>
+          </div>
+        <% end %>
+
+        <.input
+          field={to_form(%{}, as: :user)[:name]}
+          type="text"
+          required
+          autofocus
+          placeholder="Please enter your name"
+        />
+
+        <.button type="submit">Continue</.button>
+      </.form>
+    <% end %>
+  </section>
+</Layouts.app>
+

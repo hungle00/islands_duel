@@ -20,7 +20,7 @@ defmodule IslandsDuelWeb.Router do
   scope "/", IslandsDuelWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", HomeLive, :index
     resources "/session", SessionController, only: [:new, :create, :delete], singleton: true
   end
 

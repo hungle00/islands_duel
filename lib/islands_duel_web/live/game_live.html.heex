@@ -25,7 +25,7 @@
                 class={[
                   "w-8 h-8 border border-gray-300 hover:border-gray-500 hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-center text-xs",
                   if(@player_role == :player1 and MapSet.member?(@island_cells, {:player1, row, col}), do: "bg-blue-500", else: ""),
-                  if(MapSet.member?(@clicked_cells, {:player1, row, col}), do: "bg-gray-600", else: "")
+                  get_guess_cell_class(@clicked_cells, @guess_results, :player1, row, col)
                 ]}
                 phx-click="cell_click"
                 phx-value-player="player1"
@@ -50,7 +50,7 @@
                 class={[
                   "w-8 h-8 border border-gray-300 hover:border-gray-500 hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-center text-xs",
                   if(@player_role == :player2 and MapSet.member?(@island_cells, {:player2, row, col}), do: "bg-blue-500", else: ""),
-                  if(MapSet.member?(@clicked_cells, {:player2, row, col}), do: "bg-gray-600", else: "")
+                  get_guess_cell_class(@clicked_cells, @guess_results, :player2, row, col)
                 ]}
                 phx-click="cell_click"
                 phx-value-player="player2"

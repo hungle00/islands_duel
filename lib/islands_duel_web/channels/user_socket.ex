@@ -8,7 +8,8 @@ defmodule IslandsDuelWeb.UserSocket do
 
   ## Channels
 
-  channel "game:*", IslandsDuelWeb.GameChannel
+  # Game channel removed - all logic moved to LiveView
+  # channel "game:*", IslandsDuelWeb.GameChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After

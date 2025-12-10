@@ -12,6 +12,9 @@ defmodule IslandsDuelWeb.GameLive do
       |> assign(:game_id, game_id)
       |> assign(:username, username)
       |> assign(:player_role, nil)
+      |> assign(:player1_name, nil)
+      |> assign(:player2_name, nil)
+      |> assign(:player_turn, nil)
       |> assign(:clicked_cells, MapSet.new())
       |> assign(:island_cells, MapSet.new())
       |> assign(:guess_results, %{})
@@ -48,6 +51,8 @@ defmodule IslandsDuelWeb.GameLive do
       game_id = socket.assigns.game_id
       game = Game.via_tuple(game_id)
 
+      socket = load_game_state(socket, game_id)
+
       # Call Game.guess_coordinate - this will check rules and handle turn switching
       case Game.guess_coordinate(game, current_player, row, col) do
         {:hit, forested_island, win_status} ->
@@ -58,10 +63,9 @@ defmodule IslandsDuelWeb.GameLive do
             |> put_flash(:info, "Hit! #{if forested_island != :none, do: "Island #{forested_island} forested!", else: ""}")
 
           # Broadcast result to other player
-          topic = "game:#{game_id}"
           Phoenix.PubSub.broadcast(
             IslandsDuel.PubSub,
-            topic,
+            game_topic(game_id),
             {:guess_result, %{
               player: current_player,
               opponent: opponent,
@@ -74,11 +78,15 @@ defmodule IslandsDuelWeb.GameLive do
           )
 
           socket =
-            if win_status == :win do
-              put_flash(socket, :success, "You won! Game over.")
-            else
-              socket
-            end
+            socket
+            |> load_game_state(game_id)
+            |> then(fn s ->
+              if win_status == :win do
+                put_flash(s, :success, "You won! Game over.")
+              else
+                s
+              end
+            end)
 
           {:noreply, socket}
 
@@ -90,10 +98,9 @@ defmodule IslandsDuelWeb.GameLive do
             |> put_flash(:info, "Miss!")
 
           # Broadcast result to other player
-          topic = "game:#{game_id}"
           Phoenix.PubSub.broadcast(
             IslandsDuel.PubSub,
-            topic,
+            game_topic(game_id),
             {:guess_result, %{
               player: current_player,
               opponent: opponent,
@@ -105,6 +112,7 @@ defmodule IslandsDuelWeb.GameLive do
             }}
           )
 
+          socket = load_game_state(socket, game_id)
           {:noreply, socket}
 
         :error ->
@@ -118,15 +126,19 @@ defmodule IslandsDuelWeb.GameLive do
 
   @impl true
   def handle_info({:guess_result, %{player: player, opponent: opponent, row: row, col: col, result: result, forested_island: forested_island, win_status: win_status}}, socket) do
+    # Get player names for display
+    player_name = if player == :player1, do: socket.assigns.player1_name || "Player 1", else: socket.assigns.player2_name || "Player 2"
+
     # Update UI with guess result from other player
     socket =
       socket
       |> update_guess_result(opponent, row, col, result, forested_island, win_status)
-      |> put_flash(:info, "#{if player == :player1, do: "Player 1", else: "Player 2"} guessed (#{row}, #{col}) - #{if result == :hit, do: "Hit!", else: "Miss!"}")
+      |> load_game_state(socket.assigns.game_id)
+      |> put_flash(:info, "#{player_name} guessed (#{row}, #{col}) - #{if result == :hit, do: "Hit!", else: "Miss!"}")
 
     socket =
       if win_status == :win do
-        put_flash(socket, :error, "#{if player == :player1, do: "Player 1", else: "Player 2"} won! Game over.")
+        put_flash(socket, :error, "#{player_name} won! Game over.")
       else
         socket
       end
@@ -135,9 +147,12 @@ defmodule IslandsDuelWeb.GameLive do
   end
 
   # Handle player added event from PubSub
-  def handle_info({:player_added, %{username: username, player: player}}, socket) do
-    player_name = if player == :player1, do: "Player 1", else: "Player 2"
-    {:noreply, put_flash(socket, :info, "#{player_name} (#{username}) joined the game!")}
+  def handle_info({:player_added, %{username: username}}, socket) do
+    socket =
+      socket
+      |> load_game_state(socket.assigns.game_id)
+      |> put_flash(:info, "#{username} joined the game!")
+    {:noreply, socket}
   end
 
   # Catch-all for any other messages
@@ -160,6 +175,7 @@ defmodule IslandsDuelWeb.GameLive do
                 |> assign(:player_role, :player1)
                 |> setup_player_islands(game_id, :player1)
                 |> load_island_cells(game_id, :player1)
+                |> load_game_state(game_id)
 
               :error ->
                 assign(socket, :player_role, nil)
@@ -181,6 +197,7 @@ defmodule IslandsDuelWeb.GameLive do
                 |> assign(:player_role, :player1)
                 |> setup_player_islands(game_id, :player1)
                 |> load_island_cells(game_id, :player1)
+                |> load_game_state(game_id)
 
               state.player2.name == username ->
                 # User already in game as player2, allow rejoin
@@ -188,16 +205,16 @@ defmodule IslandsDuelWeb.GameLive do
                 |> assign(:player_role, :player2)
                 |> setup_player_islands(game_id, :player2)
                 |> load_island_cells(game_id, :player2)
+                |> load_game_state(game_id)
 
               true ->
                 # New player - try to add as player2
                 case Game.add_player(Game.via_tuple(game_id), username) do
                   :ok ->
                     # Broadcast player added event
-                    topic = "game:#{game_id}"
                     Phoenix.PubSub.broadcast(
                       IslandsDuel.PubSub,
-                      topic,
+                      game_topic(game_id),
                       {:player_added, %{username: username, player: :player2}}
                     )
 
@@ -205,6 +222,7 @@ defmodule IslandsDuelWeb.GameLive do
                     |> assign(:player_role, :player2)
                     |> setup_player_islands(game_id, :player2)
                     |> load_island_cells(game_id, :player2)
+                    |> load_game_state(game_id)
                     |> put_flash(:info, "Joined game as Player 2")
 
                   :error ->
@@ -266,6 +284,27 @@ defmodule IslandsDuelWeb.GameLive do
     :ok
   end
 
+  # Load game state and update player turn display
+  defp load_game_state(socket, game_id) do
+    case Game.get_state(game_id) do
+      {:ok, state} ->
+        player_turn = case state.rules.state do
+          :player1_turn -> "#{state.player1.name || "Player 1"}'s turn"
+          :player2_turn -> "#{state.player2.name || "Player 2"}'s turn"
+          :game_over -> "Game over"
+          :initialized -> "Setting up game..."
+          :players_set -> "Setting up islands..."
+          _ -> nil
+        end
+        socket
+          |> assign(:player1_name, state.player1.name)
+          |> assign(:player2_name, state.player2.name)
+          |> assign(:player_turn, player_turn)
+      {:error, _} ->
+        socket
+    end
+  end
+
   # Load island cells from game state to display on board
   defp load_island_cells(socket, game_id, player) do
     case Game.get_state(game_id) do
@@ -295,8 +334,6 @@ defmodule IslandsDuelWeb.GameLive do
     # Update clicked_cells with result
     clicked_cells = MapSet.put(socket.assigns.clicked_cells, cell_key)
 
-    # Store result type (hit/miss) for display
-    # We can extend this later to show different colors for hit vs miss
     socket =
       socket
       |> assign(:clicked_cells, clicked_cells)
@@ -304,6 +341,8 @@ defmodule IslandsDuelWeb.GameLive do
 
     socket
   end
+
+  defp game_topic(game_id), do: "game:#{game_id}"
 
   # Helper function to get CSS class for guess cell
   def get_guess_cell_class(clicked_cells, guess_results, player, row, col) do

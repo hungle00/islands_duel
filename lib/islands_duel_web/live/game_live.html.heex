@@ -7,17 +7,25 @@
     <div class="game-meta mb-6 text-center">
       <p class="text-sm text-zinc-600">
         Share this link: 
-        <a id="game-path" href={"/games/#{@game_id}"} class="text-blue-600 hover:underline">
+        <a id="game-path" href={~p"/games/#{@game_id}"} class="text-blue-600 hover:underline">
           {@game_id}
         </a>
       </p>
     </div>
 
+    <%= if @player_turn do %>
+      <div class="my-2">
+        <p class="text-xl text-zinc-800 text-center"><%= @player_turn %></p>
+      </div>
+    <% end %>
+
     <!-- Two Player Grids -->
-    <div class="flex gap-8 justify-center items-start">
+    <div class="flex flex-col md:flex-row gap-8 justify-center items-start">
       <!-- Player 1 Grid -->
-      <div class="flex-1 max-w-md">
-        <h2 class="text-lg font-semibold mb-3 text-center">Player 1</h2>
+      <div class="flex-1 max-w-md w-full">
+        <h2 class="text-lg font-semibold mb-3 text-center">
+          <%= if @player1_name, do: @player1_name, else: "Player 1" %>
+        </h2>
         <div class="grid grid-cols-11 gap-0 border-2 border-gray-800 bg-white shadow-lg">
           <%= for row <- 0..10 do %>
             <%= for col <- 0..10 do %>
@@ -41,8 +49,10 @@
       </div>
 
       <!-- Player 2 Grid -->
-      <div class="flex-1 max-w-md">
-        <h2 class="text-lg font-semibold mb-3 text-center">Player 2</h2>
+      <div class="flex-1 max-w-md w-full">
+        <h2 class="text-lg font-semibold mb-3 text-center">
+          <%= if @player2_name, do: @player2_name, else: "Player 2" %>
+        </h2>
         <div class="grid grid-cols-11 gap-0 border-2 border-gray-800 bg-white shadow-lg">
           <%= for row <- 0..10 do %>
             <%= for col <- 0..10 do %>

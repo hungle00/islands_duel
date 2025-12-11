@@ -53,16 +53,11 @@ defmodule IslandsDuelWeb.Layouts do
           <li>
             <.theme_toggle />
           </li>
-          <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
         </ul>
       </div>
     </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
+    <main class="px-4 py-10 lg:py-20 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-3xl space-y-4">
         {render_slot(@inner_block)}
       </div>

@@ -1,7 +1,7 @@
 <Layouts.app flash={@flash}>
   <section class="phx-hero">
     <h1 class="mb-2 text-xl font-semibold leading-8 text-zinc-800">
-      <%= gettext "Welcome to %{name}!", name: "Skywalker" %>
+      <%= gettext "Welcome to %{name}!", name: "Islands Duel" %>
     </h1>
 
     <%= if @current_user do %>
@@ -74,6 +74,26 @@
         <.button type="submit">Continue</.button>
       </.form>
     <% end %>
+  </section>
+  <section class="mt-8 space-y-6">
+    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+      <h2 class="text-lg font-semibold text-zinc-800 mb-4">About Islands Duel</h2>
+      <p class="text-sm text-zinc-600 mb-4">
+        Islands Duel is a strategic two-player game where you compete to find and destroy all of your opponent's islands before they find yours.
+      </p>
+
+      <div class="mb-6">
+        <h3 class="text-base font-semibold text-zinc-800 mb-3">Game Rules</h3>
+        <ul class="space-y-2 text-sm text-zinc-600 list-disc list-inside">
+          <li>Each player places <strong>5 islands</strong> on their 11x11 board <i>(Atoll, L-Shape, S-Shape, Square, Dot)</i></li>
+          <li>Players take turns guessing coordinates on their opponent's board</li>
+          <li><strong>Hit</strong>: You successfully hit an island cell</li>
+          <li><strong>Miss</strong>: Your guess didn't hit any island</li>
+          <li><strong>Forested</strong>: An island is completely destroyed when all its cells are hit</li>
+          <li><strong>Win</strong>: Destroy all of your opponent's islands to win the game</li>
+        </ul>
+      </div>
+    </div>
   </section>
 </Layouts.app>
 

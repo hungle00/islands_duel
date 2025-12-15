@@ -2,20 +2,18 @@
 
 Islands Duel is a two-player strategy game built with Phoenix LiveView. Players place islands on their boards and take turns guessing coordinates on their opponent's board to find and "forest" all of the opponent's islands. The first player to forest all of their opponent's islands wins.
 
+![Islands Duel Demo](screenshots/islands_demo.png)
+
+## About
+
+The game engine in this project is based on the excellent book [*Functional Web Development with Elixir, OTP, and Phoenix*](https://pragprog.com/titles/lhelph/functional-web-development-with-elixir-otp-and-phoenix/) by Lance Halvorsen. The book teaches you how to build a stateful game engine using pure Elixir functions, GenServer, OTP, and Supervisors.
+
 ## Features
 
 - **Real-time gameplay**: Uses Phoenix LiveView to synchronize game state in real-time between two players
 - **Game state management**: Uses GenServer and DynamicSupervisor to manage multiple concurrent games
 - **Random island placement**: Automatically places islands randomly when starting a game
 - **Turn-based logic**: Turn-based logic between two players managed by a state machine
-
-## How to Play
-
-1. Create a new game or join a game using a `game_id`
-2. Wait for the second player to join
-3. Islands will be automatically placed on your board
-4. Take turns clicking cells on your opponent's board to guess island positions
-5. The first player to forest all of their opponent's islands wins
 
 ## Installation and Running
 

@@ -84,3 +84,39 @@ if (process.env.NODE_ENV === "development") {
   })
 }
 
+// Copy to clipboard functionality
+function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text)
+  } else {
+    alert("Clipboard API not supported")
+  }
+}
+
+// Handle copy button clicks
+document.addEventListener("click", (e) => {
+  const copyButton = e.target.closest(".copy-clipboard-btn")
+  if (copyButton) {
+    e.preventDefault()
+    const urlToCopy = copyButton.getAttribute("data-copy-url")
+    copyToClipboard(urlToCopy)
+      .then(() => {
+        // Show success state
+        const copyIcon = copyButton.querySelector(".copy-icon")
+        const checkIcon = copyButton.querySelector(".check-icon")
+        if (copyIcon && checkIcon) {
+          copyIcon.classList.add("hidden")
+          checkIcon.classList.remove("hidden")
+          // Reset after 2 seconds
+          setTimeout(() => {
+            copyIcon.classList.remove("hidden")
+            checkIcon.classList.add("hidden")
+          }, 2000)
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to copy:", err)
+      })
+  }
+})
+

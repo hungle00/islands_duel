@@ -2,6 +2,7 @@ defmodule IslandsDuelWeb.GameLive do
   use IslandsDuelWeb, :live_view
 
   alias IslandsDuel.{Game, Island, Coordinate, Board, GameSupervisor}
+  alias IslandsDuelWeb.Helpers.GameState
 
   @impl true
   def mount(_params, %{"game_id" => game_id, "current_user" => current_user}, socket) do
@@ -14,7 +15,7 @@ defmodule IslandsDuelWeb.GameLive do
       |> assign(:player_role, nil)
       |> assign(:player1_name, nil)
       |> assign(:player2_name, nil)
-      |> assign(:player_turn, nil)
+      |> assign(:game_state, nil)
       |> assign(:clicked_cells, MapSet.new())
       |> assign(:island_cells, MapSet.new())
       |> assign(:guess_results, %{})
@@ -134,7 +135,7 @@ defmodule IslandsDuelWeb.GameLive do
       socket
       |> update_guess_result(opponent, row, col, result, forested_island, win_status)
       |> load_game_state(socket.assigns.game_id)
-      |> put_flash(:info, "#{player_name} guessed (#{row}, #{col}) - #{if result == :hit, do: "Hit!", else: "Miss!"}")
+      |> put_flash(:info, "#{player_name} guessed and #{if result == :hit, do: "hit on island!", else: "missed!"}")
 
     socket =
       if win_status == :win do
@@ -288,18 +289,10 @@ defmodule IslandsDuelWeb.GameLive do
   defp load_game_state(socket, game_id) do
     case Game.get_state(game_id) do
       {:ok, state} ->
-        player_turn = case state.rules.state do
-          :player1_turn -> "#{state.player1.name || "Player 1"}'s turn"
-          :player2_turn -> "#{state.player2.name || "Player 2"}'s turn"
-          :game_over -> "Game over"
-          :initialized -> "Setting up game..."
-          :players_set -> "Setting up islands..."
-          _ -> nil
-        end
         socket
           |> assign(:player1_name, state.player1.name)
           |> assign(:player2_name, state.player2.name)
-          |> assign(:player_turn, player_turn)
+          |> assign(:game_state, state.rules.state)
       {:error, _} ->
         socket
     end

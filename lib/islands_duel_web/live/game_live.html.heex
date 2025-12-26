@@ -4,7 +4,7 @@
       Islands Game
     </h1>
 
-    <div class="mb-6 md:mb-8 mt-2">
+    <div class="mb-5 md:mb-8 mt-2">
       <p class="text-sm text-zinc-600 flex items-center gap-2">
         Share this code: 
         <span id="game-path" class="text-blue-600 hover:underline">
@@ -22,25 +22,43 @@
       </p>
     </div>
 
-    <%= if @player_turn do %>
-      <div class="my-2">
-        <p class="text-xl text-zinc-800 text-center"><%= @player_turn %></p>
-      </div>
-    <% end %>
+    <%= if @game_state do
+      state_info = GameState.display_state(@game_state, @player1_name, @player2_name)
+      if state_info.show do %>
+        <div class={[
+          "my-5 flex items-center justify-center gap-3 px-6 py-3 rounded-lg border-2 transition-all",
+          "bg-white shadow-md",
+          if(@game_state == :player1_turn, do: "border-blue-200 bg-blue-50", else: ""),
+          if(@game_state == :player2_turn, do: "border-purple-200 bg-purple-50", else: ""),
+          if(@game_state == :game_over, do: "border-red-200 bg-red-50", else: ""),
+          if(@game_state in [:initialized, :players_set], do: "border-gray-200 bg-gray-50", else: "")
+        ]}>
+          <.icon name={state_info.icon} class={"size-6 #{state_info.color}"} />
+          <p class={"text-xl font-semibold #{state_info.color}"}>{state_info.text}</p>
+        </div>
+      <% end
+    end %>
 
     <!-- Two Player Grids -->
     <div class="flex flex-col md:flex-row gap-8 justify-center items-start">
       <!-- Player 1 Grid -->
       <div class="flex-1 max-w-md w-full">
-        <h2 class="text-lg font-semibold mb-3 text-center">
-          <%= if @player1_name, do: @player1_name, else: "Player 1" %>
-        </h2>
+        <div class="flex items-center justify-center gap-2 mb-3">
+          <h2 class="text-lg font-semibold text-center">
+            <%= if @player1_name, do: @player1_name, else: "Player 1" %>
+          </h2>
+          <%= if @game_state == :player1_turn do %>
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              Your Turn
+            </span>
+          <% end %>
+        </div>
         <div class="grid grid-cols-11 gap-0 border-2 border-gray-800 bg-white shadow-lg">
           <%= for row <- 0..10 do %>
             <%= for col <- 0..10 do %>
               <div 
                 class={[
-                  "w-8 h-8 border border-gray-300 hover:border-gray-500 hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-center text-xs",
+                  "w-8 h-8 border border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-sm transition-all duration-150 cursor-pointer flex items-center justify-center text-xs",
                   if(@player_role == :player1 and MapSet.member?(@island_cells, {:player1, row, col}), do: "bg-blue-500", else: ""),
                   get_guess_cell_class(@clicked_cells, @guess_results, :player1, row, col)
                 ]}
@@ -59,15 +77,22 @@
 
       <!-- Player 2 Grid -->
       <div class="flex-1 max-w-md w-full">
-        <h2 class="text-lg font-semibold mb-3 text-center">
-          <%= if @player2_name, do: @player2_name, else: "Player 2" %>
-        </h2>
+        <div class="flex items-center justify-center gap-2 mb-3">
+          <h2 class="text-lg font-semibold text-center">
+            <%= if @player2_name, do: @player2_name, else: "Player 2" %>
+          </h2>
+          <%= if @game_state == :player2_turn do %>
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+              Your Turn
+            </span>
+          <% end %>
+        </div>
         <div class="grid grid-cols-11 gap-0 border-2 border-gray-800 bg-white shadow-lg">
           <%= for row <- 0..10 do %>
             <%= for col <- 0..10 do %>
               <div 
                 class={[
-                  "w-8 h-8 border border-gray-300 hover:border-gray-500 hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-center text-xs",
+                  "w-8 h-8 border border-gray-300 hover:border-purple-400 hover:bg-purple-50 hover:shadow-sm transition-all duration-150 cursor-pointer flex items-center justify-center text-xs",
                   if(@player_role == :player2 and MapSet.member?(@island_cells, {:player2, row, col}), do: "bg-blue-500", else: ""),
                   get_guess_cell_class(@clicked_cells, @guess_results, :player2, row, col)
                 ]}
